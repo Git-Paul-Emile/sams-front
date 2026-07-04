@@ -15,6 +15,7 @@ export function useNotificationsSocket(enabled: boolean) {
     const socket = io(SOCKET_URL, {
       auth: (cb) => cb({ token: getAccessToken() }),
       withCredentials: true,
+      transports: ["websocket"],
     });
 
     socket.on("notif:created", () => {
