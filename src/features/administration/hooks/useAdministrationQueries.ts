@@ -1,0 +1,79 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  createCommercial, createOperateur, createUser, getCommerciaux, getOperateurs, getPermissions, getSettings, getUsers, updatePermission, updateSettings,
+} from "../api/administrationApi";
+import type {
+  NewAdminUserAccount, NewCommercial, NewOperateur, Settings,
+} from "../../../types/administration.types";
+
+export const usersKeys = { all: ["users"] as const };
+export const operateursKeys = { all: ["operateurs"] as const };
+export const commerciauxKeys = { all: ["commerciaux"] as const };
+export const settingsKeys = { all: ["settings"] as const };
+export const permissionsKeys = { all: ["permissions"] as const };
+
+export function usePermissions() {
+  return useQuery({ queryKey: permissionsKeys.all, queryFn: getPermissions });
+}
+
+export function useUpdatePermission() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ role, modules }: { role: string; modules: string[] }) => updatePermission(role, modules),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: permissionsKeys.all }); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useAdminUsers() {
+  return useQuery({ queryKey: usersKeys.all, queryFn: getUsers });
+}
+
+export function useCreateAdminUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: NewAdminUserAccount) => createUser(payload),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: usersKeys.all }); toast.success("Administrateur créé"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useOperateurs() {
+  return useQuery({ queryKey: operateursKeys.all, queryFn: getOperateurs });
+}
+
+export function useCreateOperateur() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: NewOperateur) => createOperateur(payload),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: operateursKeys.all }); toast.success("Opérateur créé"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useCommerciaux() {
+  return useQuery({ queryKey: commerciauxKeys.all, queryFn: getCommerciaux });
+}
+
+export function useCreateCommercial() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: NewCommercial) => createCommercial(payload),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: commerciauxKeys.all }); toast.success("Commercial créé"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useSettings() {
+  return useQuery({ queryKey: settingsKeys.all, queryFn: getSettings });
+}
+
+export function useUpdateSettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Partial<Settings>) => updateSettings(payload),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: settingsKeys.all }); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}

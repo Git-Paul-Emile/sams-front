@@ -1,0 +1,52 @@
+import { get, patch, post } from "../../../services/httpClient";
+import type {
+  AdminUserAccount, NewAdminUserAccount, Commercial, NewCommercial, NewOperateur, RolePermissions, Settings,
+} from "../../../types/administration.types";
+import type { Operateur } from "../../../types/production.types";
+
+export function getUsers(): Promise<AdminUserAccount[]> {
+  return get<AdminUserAccount[]>("/users");
+}
+
+// `connexion`/`statut` sont désormais posés côté serveur (statut par défaut "Actif",
+// connexion nulle tant qu'aucun login n'a eu lieu) : le frontend ne fait plus que
+// transmettre les champs saisis par l'utilisateur.
+export function createUser(payload: NewAdminUserAccount): Promise<AdminUserAccount> {
+  return post<AdminUserAccount>("/users", payload);
+}
+
+export function getOperateurs(): Promise<Operateur[]> {
+  return get<Operateur[]>("/operateurs");
+}
+
+// `matricule` (séquence serveur), `embauche`, `statut`, ainsi que les compteurs
+// calculés (`rendement`/`ofRealises`/`vol`/`incidents`) sont désormais gérés côté serveur.
+export function createOperateur(payload: NewOperateur): Promise<Operateur> {
+  return post<Operateur>("/operateurs", payload);
+}
+
+export function getCommerciaux(): Promise<Commercial[]> {
+  return get<Commercial[]>("/commerciaux");
+}
+
+// `matricule` (séquence serveur), `statut`, ainsi que les compteurs calculés
+// (`caRealise`/`nbClients`/`nbCmd`) sont désormais gérés côté serveur.
+export function createCommercial(payload: NewCommercial): Promise<Commercial> {
+  return post<Commercial>("/commerciaux", payload);
+}
+
+export function getPermissions(): Promise<RolePermissions[]> {
+  return get<RolePermissions[]>("/permissions");
+}
+
+export function updatePermission(role: string, modules: string[]): Promise<RolePermissions> {
+  return patch<RolePermissions>(`/permissions/${role}`, { modules });
+}
+
+export function getSettings(): Promise<Settings> {
+  return get<Settings>("/settings");
+}
+
+export function updateSettings(payload: Partial<Settings>): Promise<Settings> {
+  return patch<Settings>("/settings", payload);
+}

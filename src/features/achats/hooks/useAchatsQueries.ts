@@ -1,0 +1,27 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { createAchat, getAchats } from "../api/achatsApi";
+import type { NewAchat } from "../../../types/achats.types";
+
+export const achatsKeys = {
+  all: ["achats"] as const,
+};
+
+export function useAchats() {
+  return useQuery({
+    queryKey: achatsKeys.all,
+    queryFn: getAchats,
+  });
+}
+
+export function useCreateAchat() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: NewAchat) => createAchat(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: achatsKeys.all });
+      toast.success("Bon de commande créé");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
