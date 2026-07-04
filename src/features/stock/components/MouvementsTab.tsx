@@ -1,12 +1,21 @@
+import { useState } from "react";
+import { Search } from "lucide-react";
 import { Table, TD, TR } from "../../../components/common";
 import { fmt } from "../../../utils/format";
 import { useMouvements } from "../hooks/useStockQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 export function MouvementsTab() {
-  const { data: mouvements = [] } = useMouvements();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: mouvements = [] } = useMouvements(debouncedSearch);
 
   return (
     <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+      <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+        <Search className="w-3.5 h-3.5 text-muted-foreground" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un mouvement…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+      </div>
       <Table headers={["Date", "Type", "Référence", "Désignation", "Quantité", "Utilisateur", "Motif"]}>
         {mouvements.map((m) => (
           <TR key={m.id}>

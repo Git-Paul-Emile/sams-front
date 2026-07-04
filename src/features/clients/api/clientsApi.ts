@@ -1,8 +1,8 @@
 import { get, patch, post } from "../../../services/httpClient";
 import type { Client, NewClient } from "../../../types/clients.types";
 
-export function getClients(): Promise<Client[]> {
-  return get<Client[]>("/clients");
+export function getClients(params?: { search?: string }): Promise<Client[]> {
+  return get<Client[]>("/clients", params);
 }
 
 export function createClient(payload: NewClient): Promise<Client> {

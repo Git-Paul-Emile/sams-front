@@ -7,10 +7,10 @@ export const achatsKeys = {
   all: ["achats"] as const,
 };
 
-export function useAchats() {
+export function useAchats(search?: string) {
   return useQuery({
-    queryKey: achatsKeys.all,
-    queryFn: getAchats,
+    queryKey: [...achatsKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getAchats({ search }),
   });
 }
 

@@ -15,24 +15,24 @@ export const stockKeys = {
   mouvements: ["mouvementsStock"] as const,
 };
 
-export function useStockMatieres() {
+export function useStockMatieres(search?: string) {
   return useQuery({
-    queryKey: stockKeys.matieres,
-    queryFn: getStockMatieres,
+    queryKey: [...stockKeys.matieres, { search: search ?? "" }] as const,
+    queryFn: () => getStockMatieres({ search }),
   });
 }
 
-export function useStockProduits() {
+export function useStockProduits(search?: string) {
   return useQuery({
-    queryKey: stockKeys.produits,
-    queryFn: getStockProduits,
+    queryKey: [...stockKeys.produits, { search: search ?? "" }] as const,
+    queryFn: () => getStockProduits({ search }),
   });
 }
 
-export function useMouvements() {
+export function useMouvements(search?: string) {
   return useQuery({
-    queryKey: stockKeys.mouvements,
-    queryFn: getMouvements,
+    queryKey: [...stockKeys.mouvements, { search: search ?? "" }] as const,
+    queryFn: () => getMouvements({ search }),
   });
 }
 

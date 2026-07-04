@@ -1,10 +1,14 @@
-import { Activity, AlertCircle, Factory, Gauge, Package } from "lucide-react";
+import { useState } from "react";
+import { Activity, AlertCircle, Factory, Gauge, Package, Search } from "lucide-react";
 import { Badge, Table, TD, TR } from "../../../components/common";
 import { fmt } from "../../../utils/format";
 import { useIncidents, useProdOrders } from "../hooks/useProductionQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 export function OrdersTab() {
-  const { data: orders = [] } = useProdOrders();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: orders = [] } = useProdOrders(debouncedSearch);
   const { data: incidents = [] } = useIncidents();
 
   const enCours = orders.filter((o) => o.statut === "En cours");
@@ -39,6 +43,10 @@ export function OrdersTab() {
         })}
       </div>
       <div className="p-5">
+        <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+          <Search className="w-3.5 h-3.5 text-muted-foreground" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un OF…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+        </div>
         <Table headers={["OF", "Produit", "Ligne", "Qté prév.", "Qté réelle", "Rend.", "Responsable", "Début", "Fin", "Statut"]}>
           {orders.map((o) => (
             <TR key={o.id}>

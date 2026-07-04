@@ -7,10 +7,10 @@ export const ventesKeys = {
   all: ["commandes"] as const,
 };
 
-export function useCommandes() {
+export function useCommandes(search?: string) {
   return useQuery({
-    queryKey: ventesKeys.all,
-    queryFn: getCommandes,
+    queryKey: [...ventesKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getCommandes({ search }),
   });
 }
 

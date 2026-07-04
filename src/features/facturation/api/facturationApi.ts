@@ -1,8 +1,8 @@
 import { get, post } from "../../../services/httpClient";
 import type { Facture, NewFacture } from "../../../types/facturation.types";
 
-export function getFactures(): Promise<Facture[]> {
-  return get<Facture[]>("/factures");
+export function getFactures(params?: { search?: string }): Promise<Facture[]> {
+  return get<Facture[]>("/factures", params);
 }
 
 export function createFacture(payload: NewFacture): Promise<Facture> {

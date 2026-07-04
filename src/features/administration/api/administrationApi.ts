@@ -4,8 +4,8 @@ import type {
 } from "../../../types/administration.types";
 import type { Operateur } from "../../../types/production.types";
 
-export function getUsers(): Promise<AdminUserAccount[]> {
-  return get<AdminUserAccount[]>("/users");
+export function getUsers(params?: { search?: string }): Promise<AdminUserAccount[]> {
+  return get<AdminUserAccount[]>("/users", params);
 }
 
 // `connexion`/`statut` sont désormais posés côté serveur (statut par défaut "Actif",
@@ -15,8 +15,8 @@ export function createUser(payload: NewAdminUserAccount): Promise<AdminUserAccou
   return post<AdminUserAccount>("/users", payload);
 }
 
-export function getOperateurs(): Promise<Operateur[]> {
-  return get<Operateur[]>("/operateurs");
+export function getOperateurs(params?: { search?: string }): Promise<Operateur[]> {
+  return get<Operateur[]>("/operateurs", params);
 }
 
 // `matricule` (séquence serveur), `embauche`, `statut`, ainsi que les compteurs
@@ -25,8 +25,8 @@ export function createOperateur(payload: NewOperateur): Promise<Operateur> {
   return post<Operateur>("/operateurs", payload);
 }
 
-export function getCommerciaux(): Promise<Commercial[]> {
-  return get<Commercial[]>("/commerciaux");
+export function getCommerciaux(params?: { search?: string }): Promise<Commercial[]> {
+  return get<Commercial[]>("/commerciaux", params);
 }
 
 // `matricule` (séquence serveur), `statut`, ainsi que les compteurs calculés

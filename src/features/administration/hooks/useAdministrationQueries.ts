@@ -26,8 +26,11 @@ export function useUpdatePermission() {
   });
 }
 
-export function useAdminUsers() {
-  return useQuery({ queryKey: usersKeys.all, queryFn: getUsers });
+export function useAdminUsers(search?: string) {
+  return useQuery({
+    queryKey: [...usersKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getUsers({ search }),
+  });
 }
 
 export function useCreateAdminUser() {
@@ -39,8 +42,11 @@ export function useCreateAdminUser() {
   });
 }
 
-export function useOperateurs() {
-  return useQuery({ queryKey: operateursKeys.all, queryFn: getOperateurs });
+export function useOperateurs(search?: string) {
+  return useQuery({
+    queryKey: [...operateursKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getOperateurs({ search }),
+  });
 }
 
 export function useCreateOperateur() {
@@ -52,8 +58,11 @@ export function useCreateOperateur() {
   });
 }
 
-export function useCommerciaux() {
-  return useQuery({ queryKey: commerciauxKeys.all, queryFn: getCommerciaux });
+export function useCommerciaux(search?: string) {
+  return useQuery({
+    queryKey: [...commerciauxKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getCommerciaux({ search }),
+  });
 }
 
 export function useCreateCommercial() {

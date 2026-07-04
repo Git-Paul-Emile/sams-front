@@ -1,19 +1,26 @@
 import { useState } from "react";
-import { Download, FlaskConical } from "lucide-react";
+import { Download, FlaskConical, Search } from "lucide-react";
 import { Btn, Table, TD, TR } from "../../../components/common";
 import { useBom, useProductionStockProduits } from "../hooks/useProductionQueries";
 
 export function BomTab() {
   const [selBom, setSelBom] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const { data: bomEntries = [] } = useBom();
   const { data: stockProduits = [] } = useProductionStockProduits();
-  const produits = stockProduits.map((p) => p.designation);
+  const produits = stockProduits
+    .map((p) => p.designation)
+    .filter((p) => p.toLowerCase().includes(search.toLowerCase()));
   const selEntry = selBom ? bomEntries.find((b) => b.produit === selBom) : undefined;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="bg-card rounded-xl border border-border shadow-sm p-5">
         <h3 className="font-bold text-sm mb-3" style={{ fontFamily: "var(--font-family-heading)" }}>Produits SAMS</h3>
+        <div className="mb-3 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5">
+          <Search className="w-3.5 h-3.5 text-muted-foreground" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un produit…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+        </div>
         {produits.map((p) => (
           <button
             key={p}

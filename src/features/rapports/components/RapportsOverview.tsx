@@ -1,8 +1,10 @@
-import { Download } from "lucide-react";
+import { useState } from "react";
+import { Download, Search } from "lucide-react";
 import { SectionHeader, Table, TR, TD } from "../../../components/common";
 import { exportToExcel, exportToPdf } from "../../../utils/exportFile";
 import { raps } from "../constants";
 import { useAuditLog } from "../hooks/useRapportsQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 import type { AuditEntry } from "../types";
 
 const AUDIT_HEADERS = ["Date / Heure", "Action", "Module", "Référence", "Utilisateur", "Adresse IP"];
@@ -12,7 +14,9 @@ function auditRows(entries: AuditEntry[]) {
 }
 
 export function RapportsOverview() {
-  const { data: audit = [] } = useAuditLog();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: audit = [] } = useAuditLog(debouncedSearch);
 
   return (
     <div>
@@ -37,6 +41,10 @@ export function RapportsOverview() {
       </div>
       <div className="bg-card rounded-xl border border-border shadow-sm p-5">
         <h3 className="font-bold text-sm mb-4" style={{ fontFamily: "var(--font-family-heading)" }}>Journal d'audit – Traçabilité complète</h3>
+        <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+          <Search className="w-3.5 h-3.5 text-muted-foreground" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher dans le journal…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+        </div>
         <Table headers={["Date / Heure", "Action", "Module", "Référence", "Utilisateur", "Adresse IP"]}>
           {audit.map((a) => (
             <TR key={a.id}>

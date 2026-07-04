@@ -1,14 +1,19 @@
 import { useState } from "react";
-import { FlaskConical, Paperclip, PackageMinus, Plus, Upload } from "lucide-react";
+import { FlaskConical, Paperclip, PackageMinus, Plus, Search, Upload } from "lucide-react";
 import { SectionHeader, TabBar, Table, TR, TD, Badge, Btn } from "../../../components/common";
 import { fmt, fmtM } from "../../../utils/format";
 import { useMatReqs, useSalesReqs } from "../hooks/useSortiesQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { NewSaleReqModal } from "./NewSaleReqModal";
 import { NewMatReqModal } from "./NewMatReqModal";
 
 export function SortiesOverview() {
-  const { data: salesReqs = [] } = useSalesReqs();
-  const { data: matReqs = [] } = useMatReqs();
+  const [saleSearch, setSaleSearch] = useState("");
+  const [matSearch, setMatSearch] = useState("");
+  const debouncedSaleSearch = useDebounce(saleSearch, 300);
+  const debouncedMatSearch = useDebounce(matSearch, 300);
+  const { data: salesReqs = [] } = useSalesReqs(debouncedSaleSearch);
+  const { data: matReqs = [] } = useMatReqs(debouncedMatSearch);
   const [tab, setTab] = useState("Sortie vente");
   const [showSaleForm, setShowSaleForm] = useState(false);
   const [showMatForm, setShowMatForm] = useState(false);
@@ -30,6 +35,10 @@ export function SortiesOverview() {
               <Btn sm onClick={() => setShowSaleForm(true)}><Plus className="w-3.5 h-3.5" />Nouvelle sortie</Btn>
             </div>
             <div className="p-5">
+              <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+                <Search className="w-3.5 h-3.5 text-muted-foreground" />
+                <input value={saleSearch} onChange={(e) => setSaleSearch(e.target.value)} placeholder="Rechercher une sortie…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+              </div>
               <Table headers={["N° Sortie", "Date", "Client", "Produit", "Qté dem.", "Stock dispo", "Montant", "Statut"]}>
                 {salesReqs.map((r) => (
                   <TR key={r.num} onClick={() => setSelDetail(selDetail === r.num ? null : r.num)} highlight={r.statut === "En attente de validation"}>
@@ -83,6 +92,10 @@ export function SortiesOverview() {
               <Btn sm onClick={() => setShowMatForm(true)}><Plus className="w-3.5 h-3.5" />Nouvelle demande</Btn>
             </div>
             <div className="p-5">
+              <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+                <Search className="w-3.5 h-3.5 text-muted-foreground" />
+                <input value={matSearch} onChange={(e) => setMatSearch(e.target.value)} placeholder="Rechercher une demande…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+              </div>
               <Table headers={["N° Demande", "Date", "Produit à fabriquer", "OF", "Matière", "Qté dem.", "Opérateur", "Documents", "Statut"]}>
                 {matReqs.map((r) => (
                   <TR key={r.num} onClick={() => setSelDetail(selDetail === r.num ? null : r.num)} highlight={r.statut === "En attente de validation"}>

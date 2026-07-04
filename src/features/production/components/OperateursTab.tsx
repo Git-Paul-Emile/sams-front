@@ -1,11 +1,20 @@
+import { useState } from "react";
+import { Search } from "lucide-react";
 import { Badge, Table, TD, TR } from "../../../components/common";
 import { useOperateurs } from "../hooks/useProductionQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 export function OperateursTab() {
-  const { data: operateurs = [] } = useOperateurs();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: operateurs = [] } = useOperateurs(debouncedSearch);
 
   return (
     <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+      <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+        <Search className="w-3.5 h-3.5 text-muted-foreground" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un opérateur…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+      </div>
       <Table headers={["Matricule", "Nom", "Poste", "Équipe", "Embauche", "Rendement", "OF réalisés", "Statut"]}>
         {operateurs.map((o) => (
           <TR key={o.matricule}>

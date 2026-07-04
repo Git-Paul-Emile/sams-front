@@ -1,13 +1,28 @@
 import { useState } from "react";
-import { Edit2, Plus } from "lucide-react";
+import { Edit2, Plus, Search } from "lucide-react";
 import { SectionHeader, TabBar, Table, TR, TD, Badge, Btn } from "../../../components/common";
 import { fmtM } from "../../../utils/format";
 import { ROLE_COLORS } from "../constants";
 import { useAdminUsers, useOperateurs, useCommerciaux, usePermissions, useSettings, useUpdateSettings, useUpdatePermission } from "../hooks/useAdministrationQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { NewOperateurModal } from "./NewOperateurModal";
 import { NewCommercialModal } from "./NewCommercialModal";
 import { NewAdminModal } from "./NewAdminModal";
 import type { Settings } from "../../../types/administration.types";
+
+function SearchInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div className="flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+      <Search className="w-3.5 h-3.5 text-muted-foreground" />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder ?? "Rechercher…"}
+        className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1"
+      />
+    </div>
+  );
+}
 
 const NOTIF_TOGGLES: { key: keyof Settings; l: string }[] = [
   { key: "notifErpEnabled", l: "Notifications ERP internes" },
@@ -21,9 +36,16 @@ export function AdministrationOverview() {
   const [tab, setTab] = useState("Utilisateurs");
   const [showModal, setShowModal] = useState<"operateur" | "commercial" | "admin" | null>(null);
 
-  const { data: users = [] } = useAdminUsers();
-  const { data: operateurs = [] } = useOperateurs();
-  const { data: commerciaux = [] } = useCommerciaux();
+  const [userSearch, setUserSearch] = useState("");
+  const [operateurSearch, setOperateurSearch] = useState("");
+  const [commercialSearch, setCommercialSearch] = useState("");
+  const debouncedUserSearch = useDebounce(userSearch, 300);
+  const debouncedOperateurSearch = useDebounce(operateurSearch, 300);
+  const debouncedCommercialSearch = useDebounce(commercialSearch, 300);
+
+  const { data: users = [] } = useAdminUsers(debouncedUserSearch);
+  const { data: operateurs = [] } = useOperateurs(debouncedOperateurSearch);
+  const { data: commerciaux = [] } = useCommerciaux(debouncedCommercialSearch);
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
   const { data: permissions = [] } = usePermissions();
@@ -46,6 +68,7 @@ export function AdministrationOverview() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-card rounded-xl border border-border shadow-sm p-5">
             <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-sm" style={{ fontFamily: "var(--font-family-heading)" }}>Comptes utilisateurs</h3><Btn sm onClick={() => setShowModal("admin")}><Plus className="w-3.5 h-3.5" />Nouvel admin</Btn></div>
+            <div className="mb-4"><SearchInput value={userSearch} onChange={setUserSearch} placeholder="Rechercher un utilisateur…" /></div>
             <Table headers={["Utilisateur", "Email", "Rôle", "Dernière connexion", "Statut", ""]}>
               {users.map((u) => (
                 <TR key={u.id}>
@@ -88,7 +111,7 @@ export function AdministrationOverview() {
 
       {tab === "Opérateurs" && (
         <div className="bg-card rounded-xl border border-border shadow-sm">
-          <div className="p-5 border-b border-border flex items-center justify-between"><p className="font-semibold text-sm">{operateurs.length} opérateurs</p><Btn sm onClick={() => setShowModal("operateur")}><Plus className="w-3.5 h-3.5" />Nouvel opérateur</Btn></div>
+          <div className="p-5 border-b border-border flex items-center justify-between"><p className="font-semibold text-sm">{operateurs.length} opérateurs</p><div className="flex items-center gap-3"><SearchInput value={operateurSearch} onChange={setOperateurSearch} placeholder="Rechercher un opérateur…" /><Btn sm onClick={() => setShowModal("operateur")}><Plus className="w-3.5 h-3.5" />Nouvel opérateur</Btn></div></div>
           <div className="p-5">
             <Table headers={["Matricule", "Nom", "Téléphone", "Email", "Poste", "Ligne", "Embauche", "Rendement", "Statut", ""]}>
               {operateurs.map((o) => (
@@ -112,7 +135,7 @@ export function AdministrationOverview() {
 
       {tab === "Commerciaux" && (
         <div className="bg-card rounded-xl border border-border shadow-sm">
-          <div className="p-5 border-b border-border flex items-center justify-between"><p className="font-semibold text-sm">{commerciaux.length} commerciaux</p><Btn sm onClick={() => setShowModal("commercial")}><Plus className="w-3.5 h-3.5" />Nouveau commercial</Btn></div>
+          <div className="p-5 border-b border-border flex items-center justify-between"><p className="font-semibold text-sm">{commerciaux.length} commerciaux</p><div className="flex items-center gap-3"><SearchInput value={commercialSearch} onChange={setCommercialSearch} placeholder="Rechercher un commercial…" /><Btn sm onClick={() => setShowModal("commercial")}><Plus className="w-3.5 h-3.5" />Nouveau commercial</Btn></div></div>
           <div className="p-5">
             <Table headers={["Matricule", "Nom", "Téléphone", "Email", "Zone", "Objectif", "CA réalisé", "Atteinte", "Statut", ""]}>
               {commerciaux.map((a) => (

@@ -1,15 +1,20 @@
 import { useState } from "react";
-import { AlertCircle, CheckCircle, Clock, CreditCard, Download, FileText, Plus } from "lucide-react";
+import { useSearchParams } from "react-router";
+import { AlertCircle, CheckCircle, Clock, CreditCard, Download, FileText, Plus, Search } from "lucide-react";
 import { SectionHeader, Btn, KpiCard, TabBar, Table, TR, TD, Badge } from "../../../components/common";
 import { fmt, fmtM } from "../../../utils/format";
 import { exportToExcel, exportToPdf } from "../../../utils/exportFile";
 import { useFactures, usePayFacture } from "../hooks/useFacturationQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { FACTURE_HEADERS, factureRows } from "../exportHelpers";
 
 const TABS = ["Toutes", "Payées", "En attente", "En retard", "Brouillon", "Dépôt vente"];
 
 export function FacturationOverview({ onNew }: { onNew: () => void }) {
-  const { data: factures = [] } = useFactures();
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: factures = [] } = useFactures(debouncedSearch);
   const payFacture = usePayFacture();
   const [selNum, setSelNum] = useState<string | null>(null);
   const [tab, setTab] = useState("Toutes");
@@ -37,6 +42,10 @@ export function FacturationOverview({ onNew }: { onNew: () => void }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-sm p-5">
+          <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+            <Search className="w-3.5 h-3.5 text-muted-foreground" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher une facture…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+          </div>
           <Table headers={["N° Facture", "Client", "Émission", "Échéance", "Montant", "Payé", "Type", "Statut", ""]}>
             {filtered.map((f) => (
               <TR key={f.num} onClick={() => setSelNum(selNum === f.num ? null : f.num)}>

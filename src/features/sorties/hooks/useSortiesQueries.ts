@@ -10,12 +10,18 @@ import { notificationsKeys } from "../../notifications";
 export const salesReqsKeys = { all: ["salesReqs"] as const };
 export const matReqsKeys = { all: ["matReqs"] as const };
 
-export function useSalesReqs() {
-  return useQuery({ queryKey: salesReqsKeys.all, queryFn: getSalesReqs });
+export function useSalesReqs(search?: string) {
+  return useQuery({
+    queryKey: [...salesReqsKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getSalesReqs({ search }),
+  });
 }
 
-export function useMatReqs() {
-  return useQuery({ queryKey: matReqsKeys.all, queryFn: getMatReqs });
+export function useMatReqs(search?: string) {
+  return useQuery({
+    queryKey: [...matReqsKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getMatReqs({ search }),
+  });
 }
 
 export function useCreateSalesReq() {

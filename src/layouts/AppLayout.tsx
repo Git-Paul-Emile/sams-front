@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { ChevronRight, Menu } from "lucide-react";
 import { useAuth } from "../features/auth";
+import { useNotificationsSocket } from "../features/notifications";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { NAV_ITEMS } from "./navItems";
@@ -11,6 +12,8 @@ export function AppLayout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  useNotificationsSocket(!!user);
 
   if (!user) return null; // ProtectedRoute garantit déjà la présence d'un user ici
 

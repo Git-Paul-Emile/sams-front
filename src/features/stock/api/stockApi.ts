@@ -1,16 +1,16 @@
 import { get, patch, post } from "../../../services/httpClient";
 import type { Mouvement, StockItem } from "../../../types/stock.types";
 
-export function getStockMatieres(): Promise<StockItem[]> {
-  return get<StockItem[]>("/stock-items", { type: "MATIERE" });
+export function getStockMatieres(params?: { search?: string }): Promise<StockItem[]> {
+  return get<StockItem[]>("/stock-items", { type: "MATIERE", ...params });
 }
 
-export function getStockProduits(): Promise<StockItem[]> {
-  return get<StockItem[]>("/stock-items", { type: "PRODUIT" });
+export function getStockProduits(params?: { search?: string }): Promise<StockItem[]> {
+  return get<StockItem[]>("/stock-items", { type: "PRODUIT", ...params });
 }
 
-export function getMouvements(): Promise<Mouvement[]> {
-  return get<Mouvement[]>("/stock-movements");
+export function getMouvements(params?: { search?: string }): Promise<Mouvement[]> {
+  return get<Mouvement[]>("/stock-movements", params);
 }
 
 export interface NewMouvement {

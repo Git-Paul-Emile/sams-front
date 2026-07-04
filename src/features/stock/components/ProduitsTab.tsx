@@ -1,12 +1,21 @@
+import { useState } from "react";
+import { Search } from "lucide-react";
 import { StockBadge, Table, TD, TR } from "../../../components/common";
 import { fmt, fmtM } from "../../../utils/format";
 import { useStockProduits } from "../hooks/useStockQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 export function ProduitsTab() {
-  const { data: produits = [] } = useStockProduits();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: produits = [] } = useStockProduits(debouncedSearch);
 
   return (
     <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+      <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+        <Search className="w-3.5 h-3.5 text-muted-foreground" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un produit…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+      </div>
       <Table headers={["Code", "Désignation", "Catégorie", "Stock", "Unité", "Min.", "Valeur unit.", "Valeur totale", "Statut"]}>
         {produits.map((p) => (
           <TR key={p.code}>

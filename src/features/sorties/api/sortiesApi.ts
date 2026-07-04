@@ -1,8 +1,8 @@
 import { get, post } from "../../../services/httpClient";
 import type { SalesReq, MatReq } from "../../../types/sorties.types";
 
-export function getSalesReqs(): Promise<SalesReq[]> {
-  return get<SalesReq[]>("/sales-requests");
+export function getSalesReqs(params?: { search?: string }): Promise<SalesReq[]> {
+  return get<SalesReq[]>("/sales-requests", params);
 }
 
 export interface NewSalesReqPayload {
@@ -19,8 +19,8 @@ export function createSalesReq(payload: NewSalesReqPayload): Promise<SalesReq> {
   return post<SalesReq>("/sales-requests", payload);
 }
 
-export function getMatReqs(): Promise<MatReq[]> {
-  return get<MatReq[]>("/material-requests");
+export function getMatReqs(params?: { search?: string }): Promise<MatReq[]> {
+  return get<MatReq[]>("/material-requests", params);
 }
 
 export interface NewMatReqPayload {

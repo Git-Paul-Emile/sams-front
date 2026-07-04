@@ -1,11 +1,20 @@
+import { useState } from "react";
+import { Search } from "lucide-react";
 import { Badge, Table, TD, TR } from "../../../components/common";
 import { useIncidents } from "../hooks/useProductionQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 
 export function IncidentsTab() {
-  const { data: incidents = [] } = useIncidents();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: incidents = [] } = useIncidents(debouncedSearch);
 
   return (
     <div className="bg-card rounded-xl border border-border shadow-sm p-5">
+      <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+        <Search className="w-3.5 h-3.5 text-muted-foreground" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un incident…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+      </div>
       <Table headers={["ID", "OF", "Catégorie", "Description", "Date", "Opérateur", "Gravité", "Statut"]}>
         {incidents.map((i) => (
           <TR key={i.id}>

@@ -7,10 +7,10 @@ export const facturationKeys = {
   all: ["factures"] as const,
 };
 
-export function useFactures() {
+export function useFactures(search?: string) {
   return useQuery({
-    queryKey: facturationKeys.all,
-    queryFn: getFactures,
+    queryKey: [...facturationKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getFactures({ search }),
   });
 }
 

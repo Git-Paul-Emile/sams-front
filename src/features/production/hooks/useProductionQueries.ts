@@ -10,10 +10,10 @@ export const productionKeys = {
   incidents: ["incidents"] as const,
 };
 
-export function useProdOrders() {
+export function useProdOrders(search?: string) {
   return useQuery({
-    queryKey: productionKeys.orders,
-    queryFn: getProdOrders,
+    queryKey: [...productionKeys.orders, { search: search ?? "" }] as const,
+    queryFn: () => getProdOrders({ search }),
   });
 }
 
@@ -24,17 +24,17 @@ export function useBom() {
   });
 }
 
-export function useOperateurs() {
+export function useOperateurs(search?: string) {
   return useQuery({
-    queryKey: productionKeys.operateurs,
-    queryFn: getOperateurs,
+    queryKey: [...productionKeys.operateurs, { search: search ?? "" }] as const,
+    queryFn: () => getOperateurs({ search }),
   });
 }
 
-export function useIncidents() {
+export function useIncidents(search?: string) {
   return useQuery({
-    queryKey: productionKeys.incidents,
-    queryFn: getIncidents,
+    queryKey: [...productionKeys.incidents, { search: search ?? "" }] as const,
+    queryFn: () => getIncidents({ search }),
   });
 }
 

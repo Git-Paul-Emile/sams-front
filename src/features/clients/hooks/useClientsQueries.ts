@@ -7,10 +7,10 @@ export const clientsKeys = {
   all: ["clients"] as const,
 };
 
-export function useClients() {
+export function useClients(search?: string) {
   return useQuery({
-    queryKey: clientsKeys.all,
-    queryFn: getClients,
+    queryKey: [...clientsKeys.all, { search: search ?? "" }] as const,
+    queryFn: () => getClients({ search }),
   });
 }
 

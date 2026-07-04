@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { DollarSign, Layers, Package, TrendingUp } from "lucide-react";
+import { DollarSign, Layers, Package, Search, TrendingUp } from "lucide-react";
 import { KpiCard, SectionHeader, TabBar } from "../../../components/common";
 import { calcCosts } from "../../../utils/costs";
 import { fmtM } from "../../../utils/format";
 import { useCommandesRentabilite, useMatieresPrix, useProductCosts } from "../hooks/useCoutsQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { AnalyseProduitTab } from "./AnalyseProduitTab";
 import { CommandesTab } from "./CommandesTab";
 import { MatieresPremieresTab } from "./MatieresPremieresTab";
@@ -17,22 +18,30 @@ export function CoutsOverview() {
   const [selRef, setSelRef] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<string>("tauxMarge");
   const [sortDesc, setSortDesc] = useState(true);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
+  const q = debouncedSearch.toLowerCase();
 
   const { data: products = [] } = useProductCosts();
   const { data: matieres = [] } = useMatieresPrix();
   const { data: commandes = [] } = useCommandesRentabilite();
 
-  const computed = products.map((p) => ({ ...p, ...calcCosts(p) }));
+  const filteredProducts = products.filter((p) => p.designation.toLowerCase().includes(q) || p.ref.toLowerCase().includes(q));
+  const filteredMatieres = matieres.filter((m) => m.mat.toLowerCase().includes(q));
+  const filteredCommandes = commandes.filter((c) => c.num.toLowerCase().includes(q) || c.client.toLowerCase().includes(q));
+
+  const allComputed = products.map((p) => ({ ...p, ...calcCosts(p) }));
+  const computed = filteredProducts.map((p) => ({ ...p, ...calcCosts(p) }));
   const sorted = [...computed].sort((a, b) => {
     const va = (a as unknown as Record<string, number>)[sortKey] || 0;
     const vb = (b as unknown as Record<string, number>)[sortKey] || 0;
     return sortDesc ? vb - va : va - vb;
   });
 
-  const totalCA = computed.reduce((s, p) => s + p.ca, 0);
-  const totalMat = computed.reduce((s, p) => s + p.coutMat, 0);
-  const totalEmb = computed.reduce((s, p) => s + p.coutEmb, 0);
-  const totalMarge = computed.reduce((s, p) => s + p.profitTotal, 0);
+  const totalCA = allComputed.reduce((s, p) => s + p.ca, 0);
+  const totalMat = allComputed.reduce((s, p) => s + p.coutMat, 0);
+  const totalEmb = allComputed.reduce((s, p) => s + p.coutEmb, 0);
+  const totalMarge = allComputed.reduce((s, p) => s + p.profitTotal, 0);
   const avgMarge = totalCA > 0 ? (totalMarge / totalCA) * 100 : 0;
 
   const selProd = products.find((p) => p.ref === selRef) ?? products[0];
@@ -56,19 +65,24 @@ export function CoutsOverview() {
 
       <TabBar tabs={TABS} active={tab} onChange={setTab} />
 
+      <div className="mb-4 flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+        <Search className="w-3.5 h-3.5 text-muted-foreground" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+      </div>
+
       {tab === "Rentabilité" && (
         <RentabiliteTab sorted={sorted} sortKey={sortKey} sortDesc={sortDesc} onSort={handleSort} />
       )}
 
       {tab === "Analyse produit" && selProd && (
-        <AnalyseProduitTab products={products} selProd={selProd} onSelect={setSelRef} />
+        <AnalyseProduitTab products={filteredProducts} selProd={selProd} onSelect={setSelRef} />
       )}
 
       {tab === "Matières premières" && (
-        <MatieresPremieresTab matieres={matieres} products={products} />
+        <MatieresPremieresTab matieres={filteredMatieres} products={products} />
       )}
 
-      {tab === "Commandes" && <CommandesTab commandes={commandes} />}
+      {tab === "Commandes" && <CommandesTab commandes={filteredCommandes} />}
 
       {tab === "Variations" && <VariationsTab computed={computed} />}
     </div>

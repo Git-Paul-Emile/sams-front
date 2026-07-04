@@ -22,6 +22,10 @@ export function setAccessToken(token: string | null): void {
   accessToken = token;
 }
 
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
 export function setOnAuthExpired(callback: (() => void) | null): void {
   onAuthExpired = callback;
 }

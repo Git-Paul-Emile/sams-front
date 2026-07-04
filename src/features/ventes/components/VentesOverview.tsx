@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { ClipboardList, Eye, Plus, TrendingUp, Zap } from "lucide-react";
+import { useSearchParams } from "react-router";
+import { ClipboardList, Eye, Plus, Search, TrendingUp, Zap } from "lucide-react";
 import { SectionHeader, Btn, KpiCard, Table, TR, TD, Badge, Timeline } from "../../../components/common";
 import { fmt, fmtM } from "../../../utils/format";
 import { useCommandes } from "../hooks/useVentesQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 import { ORDER_STATES } from "../constants";
 
 export function VentesOverview({ onNew }: { onNew: () => void }) {
-  const { data: commandes = [] } = useCommandes();
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: commandes = [] } = useCommandes(debouncedSearch);
   const [sel, setSel] = useState<string | null>(null);
   const selCmd = commandes.find((v) => v.num === sel);
 
@@ -26,6 +31,12 @@ export function VentesOverview({ onNew }: { onNew: () => void }) {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center gap-2 bg-input-background rounded-lg px-3 py-1.5 w-64">
+              <Search className="w-3.5 h-3.5 text-muted-foreground" />
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher une commande…" className="bg-transparent text-sm text-foreground placeholder-muted-foreground focus:outline-none flex-1" />
+            </div>
+          </div>
           <Table headers={["N° CMD", "Client", "Date", "Montant", "Commercial", "État actuel", ""]}>
             {commandes.map((v) => (
               <TR key={v.num} onClick={() => setSel(sel === v.num ? null : v.num)}>

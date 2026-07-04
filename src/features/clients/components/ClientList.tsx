@@ -1,17 +1,17 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { Search } from "lucide-react";
 import { Badge } from "../../../components/common";
 import { fmtM } from "../../../utils/format";
 import { useClients } from "../hooks/useClientsQueries";
+import { useDebounce } from "../../../hooks/useDebounce";
 import type { Client } from "../../../types/clients.types";
 
 export function ClientList({ selectedId, onSelect }: { selectedId: string | null; onSelect: (c: Client) => void }) {
-  const { data: clients = [], isLoading } = useClients();
-  const [search, setSearch] = useState("");
-
-  const filtered = clients.filter(
-    (c) => c.raison.toLowerCase().includes(search.toLowerCase()) || c.code.toLowerCase().includes(search.toLowerCase())
-  );
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const debouncedSearch = useDebounce(search, 300);
+  const { data: clients = [], isLoading } = useClients(debouncedSearch);
 
   return (
     <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
@@ -23,7 +23,7 @@ export function ClientList({ selectedId, onSelect }: { selectedId: string | null
       </div>
       <div className="divide-y divide-border max-h-[60vh] overflow-y-auto">
         {isLoading && <p className="p-4 text-sm text-muted-foreground">Chargement…</p>}
-        {filtered.map((c) => (
+        {clients.map((c) => (
           <button key={c.id} onClick={() => onSelect(c)} className={`w-full text-left p-4 hover:bg-muted/40 transition-colors ${selectedId === c.id ? "bg-blue-50 border-l-2 border-primary" : ""}`}>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0"><span className="text-xs font-bold text-primary">{c.raison.slice(0, 2).toUpperCase()}</span></div>
