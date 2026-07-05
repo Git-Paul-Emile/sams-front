@@ -1,4 +1,5 @@
 import { get, patch, post } from "../../../services/httpClient";
+import type { ImportReport, ImportRow } from "../../../components/common";
 import type { Client, NewClient } from "../../../types/clients.types";
 
 export function getClients(params?: { search?: string }): Promise<Client[]> {
@@ -15,4 +16,8 @@ export function updateClient(id: string, payload: Partial<Client>): Promise<Clie
 
 export function setClientStatus(id: string, statut: "Actif" | "Inactif"): Promise<Client> {
   return patch<Client>(`/clients/${id}`, { statut });
+}
+
+export function importClients(rows: ImportRow[]): Promise<ImportReport> {
+  return post<ImportReport>("/clients/import", { rows });
 }

@@ -1,4 +1,5 @@
 import { get, patch, post } from "../../../services/httpClient";
+import type { ImportReport, ImportRow } from "../../../components/common";
 import type {
   AdminUserAccount, NewAdminUserAccount, Commercial, NewCommercial, NewOperateur, RolePermissions, Settings,
 } from "../../../types/administration.types";
@@ -39,8 +40,24 @@ export function getPermissions(): Promise<RolePermissions[]> {
   return get<RolePermissions[]>("/permissions");
 }
 
+export function getPermissionModules(): Promise<string[]> {
+  return get<string[]>("/permissions/modules");
+}
+
 export function updatePermission(role: string, modules: string[]): Promise<RolePermissions> {
   return patch<RolePermissions>(`/permissions/${role}`, { modules });
+}
+
+export function importUsers(rows: ImportRow[]): Promise<ImportReport> {
+  return post<ImportReport>("/users/import", { rows });
+}
+
+export function importOperateurs(rows: ImportRow[]): Promise<ImportReport> {
+  return post<ImportReport>("/operateurs/import", { rows });
+}
+
+export function importCommerciaux(rows: ImportRow[]): Promise<ImportReport> {
+  return post<ImportReport>("/commerciaux/import", { rows });
 }
 
 export function getSettings(): Promise<Settings> {

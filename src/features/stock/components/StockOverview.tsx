@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { AlertTriangle, Plus } from "lucide-react";
+import { AlertTriangle, Plus, Upload } from "lucide-react";
 import { Btn, SectionHeader, TabBar } from "../../../components/common";
 import { getStockStatus } from "../../../utils/stock";
 import { useStockMatieres } from "../hooks/useStockQueries";
+import { ImportStockModal } from "./ImportStockModal";
 import { MatieresTab } from "./MatieresTab";
 import { MouvementsTab } from "./MouvementsTab";
 import { ProduitsTab } from "./ProduitsTab";
@@ -13,6 +14,7 @@ const TABS = ["Matières premières", "Produits finis", "Mouvements"];
 export function StockOverview() {
   const [tab, setTab] = useState(TABS[0]);
   const [showEntry, setShowEntry] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const { data: stockMatieres = [] } = useStockMatieres();
   const alertes = stockMatieres.filter((m) => getStockStatus(m.stock, m.min, m.critique) !== "normal");
 
@@ -21,7 +23,12 @@ export function StockOverview() {
       <SectionHeader
         title="Gestion des stocks"
         sub="Matières premières, produits finis, mouvements"
-        action={<Btn sm onClick={() => setShowEntry(true)}><Plus className="w-4 h-4" />Entrée stock</Btn>}
+        action={
+          <div className="flex gap-2">
+            <Btn variant="secondary" sm onClick={() => setShowImport(true)}><Upload className="w-3.5 h-3.5" />Importer</Btn>
+            <Btn sm onClick={() => setShowEntry(true)}><Plus className="w-4 h-4" />Entrée stock</Btn>
+          </div>
+        }
       />
       {alertes.length > 0 && (
         <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
@@ -39,6 +46,7 @@ export function StockOverview() {
       {tab === "Mouvements" && <MouvementsTab />}
 
       {showEntry && <StockEntryModal onClose={() => setShowEntry(false)} />}
+      {showImport && <ImportStockModal onClose={() => setShowImport(false)} />}
     </div>
   );
 }

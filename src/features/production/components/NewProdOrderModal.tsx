@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { Btn, Field, Input, Modal, Sel } from "../../../components/common";
-import { useCreateProdOrder, useOperateurs, useProductionStockProduits } from "../hooks/useProductionQueries";
+import { useBom, useCreateProdOrder, useOperateurs, useProductionStockProduits } from "../hooks/useProductionQueries";
+import { BomFormModal } from "./BomFormModal";
 import type { NewProdOrder } from "../../../types/production.types";
 
 const LIGNES = ["Ligne A", "Ligne B", "Ligne C"];
@@ -16,14 +18,17 @@ const EMPTY_FORM = {
 
 export function NewProdOrderModal({ onClose }: { onClose: () => void }) {
   const [nf, setNf] = useState(EMPTY_FORM);
+  const [showBomModal, setShowBomModal] = useState(false);
   const { data: operateurs = [] } = useOperateurs();
   const { data: stockProduits = [] } = useProductionStockProduits();
+  const { data: bomEntries = [] } = useBom();
   const createProdOrder = useCreateProdOrder();
 
   const responsables = operateurs.filter((o) => o.poste === "Chef d'équipe" || o.statut === "Actif");
 
   const produitId = nf.produitId || stockProduits[0]?.id || "";
   const responsableId = nf.responsableId || responsables[0]?.id || "";
+  const hasBom = bomEntries.some((b) => b.produitId === produitId);
 
   function handleSave() {
     const payload: NewProdOrder = {
@@ -66,11 +71,23 @@ export function NewProdOrderModal({ onClose }: { onClose: () => void }) {
             </select>
           </Field>
         </div>
+        {produitId && !hasBom && (
+          <div className="col-span-2 flex items-center justify-between gap-3 p-3 rounded-lg bg-amber-50 border border-amber-100">
+            <div className="flex items-center gap-2 text-amber-700">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <p className="text-xs font-medium">Aucune formule définie pour ce produit. Un ordre de fabrication ne peut pas être créé sans formule.</p>
+            </div>
+            <Btn variant="secondary" sm onClick={() => setShowBomModal(true)}>Créer la formule</Btn>
+          </div>
+        )}
         <div className="col-span-2 flex justify-end gap-3 pt-2">
           <Btn variant="secondary" onClick={onClose}>Annuler</Btn>
-          <Btn onClick={handleSave} disabled={createProdOrder.isPending}>Créer l'OF</Btn>
+          <Btn onClick={handleSave} disabled={createProdOrder.isPending || !hasBom}>Créer l'OF</Btn>
         </div>
       </div>
+      {showBomModal && (
+        <BomFormModal produitId={produitId} onClose={() => setShowBomModal(false)} />
+      )}
     </Modal>
   );
 }

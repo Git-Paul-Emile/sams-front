@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createClient, getClients, setClientStatus, updateClient } from "../api/clientsApi";
+import { createClient, getClients, importClients, setClientStatus, updateClient } from "../api/clientsApi";
+import type { ImportRow } from "../../../components/common";
 import type { Client, NewClient } from "../../../types/clients.types";
 import { toast } from "sonner";
 
@@ -33,6 +34,18 @@ export function useUpdateClient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: clientsKeys.all });
       toast.success("Client mis à jour");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useImportClients() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (rows: ImportRow[]) => importClients(rows),
+    onSuccess: (report) => {
+      queryClient.invalidateQueries({ queryKey: clientsKeys.all });
+      if (report.errors.length === 0) toast.success(`${report.created} client(s) importé(s)`);
     },
     onError: (err: Error) => toast.error(err.message),
   });

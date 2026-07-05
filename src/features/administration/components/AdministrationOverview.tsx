@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Edit2, Plus, Search } from "lucide-react";
+import { Edit2, Plus, Search, Upload } from "lucide-react";
 import { SectionHeader, TabBar, Table, TR, TD, Badge, Btn } from "../../../components/common";
 import { fmtM } from "../../../utils/format";
 import { ROLE_COLORS } from "../constants";
-import { useAdminUsers, useOperateurs, useCommerciaux, usePermissions, useSettings, useUpdateSettings, useUpdatePermission } from "../hooks/useAdministrationQueries";
+import { useAdminUsers, useOperateurs, useCommerciaux, usePermissions, usePermissionModules, useSettings, useUpdateSettings, useUpdatePermission } from "../hooks/useAdministrationQueries";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { NewOperateurModal } from "./NewOperateurModal";
 import { NewCommercialModal } from "./NewCommercialModal";
 import { NewAdminModal } from "./NewAdminModal";
+import { ImportTeamModal } from "./ImportTeamModal";
 import type { Settings } from "../../../types/administration.types";
 
 function SearchInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
@@ -34,7 +35,7 @@ const NOTIF_TOGGLES: { key: keyof Settings; l: string }[] = [
 
 export function AdministrationOverview() {
   const [tab, setTab] = useState("Utilisateurs");
-  const [showModal, setShowModal] = useState<"operateur" | "commercial" | "admin" | null>(null);
+  const [showModal, setShowModal] = useState<"operateur" | "commercial" | "admin" | "import" | null>(null);
 
   const [userSearch, setUserSearch] = useState("");
   const [operateurSearch, setOperateurSearch] = useState("");
@@ -49,8 +50,11 @@ export function AdministrationOverview() {
   const { data: settings } = useSettings();
   const updateSettings = useUpdateSettings();
   const { data: permissions = [] } = usePermissions();
+  const { data: knownModules } = usePermissionModules();
   const updatePermission = useUpdatePermission();
-  const allModules = Array.from(new Set(permissions.flatMap((p) => p.modules)));
+  // Fallback sur l'union des modules déjà seedés tant que /permissions/modules n'a pas répondu,
+  // pour ne pas régresser visuellement pendant le chargement.
+  const allModules = knownModules ?? Array.from(new Set(permissions.flatMap((p) => p.modules)));
 
   function toggleModule(role: string, currentModules: string[], mod: string) {
     const modules = currentModules.includes(mod)
@@ -61,19 +65,23 @@ export function AdministrationOverview() {
 
   return (
     <div>
-      <SectionHeader title="Administration système" sub="Utilisateurs, rôles, opérateurs et commerciaux" />
+      <SectionHeader
+        title="Administration système"
+        sub="Utilisateurs, rôles, opérateurs et commerciaux"
+        action={<Btn variant="secondary" sm onClick={() => setShowModal("import")}><Upload className="w-3.5 h-3.5" />Importer équipes</Btn>}
+      />
       <TabBar tabs={["Utilisateurs", "Opérateurs", "Commerciaux", "Permissions"]} active={tab} onChange={setTab} />
 
       {tab === "Utilisateurs" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-card rounded-xl border border-border shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-sm" style={{ fontFamily: "var(--font-family-heading)" }}>Comptes utilisateurs</h3><Btn sm onClick={() => setShowModal("admin")}><Plus className="w-3.5 h-3.5" />Nouvel admin</Btn></div>
+            <div className="flex items-center justify-between mb-4"><h3 className="font-bold text-sm" style={{ fontFamily: "var(--font-family-heading)" }}>Comptes utilisateurs</h3><Btn sm onClick={() => setShowModal("admin")}><Plus className="w-3.5 h-3.5" />Nouveau compte</Btn></div>
             <div className="mb-4"><SearchInput value={userSearch} onChange={setUserSearch} placeholder="Rechercher un utilisateur…" /></div>
             <Table headers={["Utilisateur", "Email", "Rôle", "Dernière connexion", "Statut", ""]}>
               {users.map((u) => (
                 <TR key={u.id}>
                   <TD><div className="flex items-center gap-2.5"><div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center"><span className="text-[10px] font-bold text-primary">{u.nom.split(" ").map((n) => n[0]).join("").slice(0, 2)}</span></div><span className="font-medium text-sm">{u.nom}</span></div></TD>
-                  <TD><span className="text-xs font-mono text-muted-foreground">{u.email}</span></TD>
+                  <TD><span className="text-xs font-mono text-muted-foreground">{u.email ?? u.tel ?? "—"}</span></TD>
                   <TD><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_COLORS[u.role]}`}>{u.role}</span></TD>
                   <TD><span className="text-xs text-muted-foreground">{u.connexion}</span></TD>
                   <TD><Badge label={u.statut} /></TD>
@@ -161,23 +169,42 @@ export function AdministrationOverview() {
         <div className="bg-card rounded-xl border border-border shadow-sm p-5">
           <h3 className="font-bold text-sm mb-4" style={{ fontFamily: "var(--font-family-heading)" }}>Matrice des permissions par rôle</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {permissions.map((p) => (
-              <div key={p.role} className="border border-border rounded-xl p-4">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${ROLE_COLORS[p.role]}`}>{p.role}</span>
-                <div className="flex flex-wrap gap-1 mt-3">
-                  {allModules.map((mod) => (
+            {permissions.map((p) => {
+              const hasFullAccess = p.modules.includes("*");
+              return (
+                <div key={p.role} className="border border-border rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${ROLE_COLORS[p.role]}`}>{p.role}</span>
+                    {hasFullAccess && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">Accès total</span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {allModules.map((mod) => (
+                      <button
+                        key={mod}
+                        type="button"
+                        disabled={hasFullAccess}
+                        title={hasFullAccess ? "Ce rôle a un accès total (\"*\") ; retirez-le d'abord pour gérer les modules un par un" : undefined}
+                        onClick={() => toggleModule(p.role, p.modules, mod)}
+                        className={`text-[10px] px-1.5 py-0.5 rounded font-medium transition-colors ${hasFullAccess ? "cursor-not-allowed" : "cursor-pointer"} ${hasFullAccess || p.modules.includes(mod) ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-slate-100 text-slate-400 line-through hover:bg-slate-200"}`}
+                      >
+                        {mod}
+                      </button>
+                    ))}
+                  </div>
+                  {hasFullAccess && (
                     <button
-                      key={mod}
                       type="button"
-                      onClick={() => toggleModule(p.role, p.modules, mod)}
-                      className={`text-[10px] px-1.5 py-0.5 rounded font-medium transition-colors cursor-pointer ${p.modules.includes(mod) ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-slate-100 text-slate-400 line-through hover:bg-slate-200"}`}
+                      className="text-[10px] text-muted-foreground underline mt-2"
+                      onClick={() => updatePermission.mutate({ role: p.role, modules: [] })}
                     >
-                      {mod}
+                      Basculer en gestion module par module
                     </button>
-                  ))}
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -185,6 +212,7 @@ export function AdministrationOverview() {
       {showModal === "operateur" && <NewOperateurModal onClose={() => setShowModal(null)} />}
       {showModal === "commercial" && <NewCommercialModal onClose={() => setShowModal(null)} />}
       {showModal === "admin" && <NewAdminModal onClose={() => setShowModal(null)} />}
+      {showModal === "import" && <ImportTeamModal onClose={() => setShowModal(null)} />}
     </div>
   );
 }

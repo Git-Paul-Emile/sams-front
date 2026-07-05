@@ -3,7 +3,7 @@ import type { Id, Role } from "./common.types";
 export interface AdminUserAccount {
   id: Id;
   nom: string;
-  email: string;
+  email: string | null;
   tel?: string;
   role: Role;
   connexion: string;
@@ -12,7 +12,8 @@ export interface AdminUserAccount {
 
 export interface NewAdminUserAccount {
   nom: string;
-  email: string;
+  email?: string;
+  tel?: string;
   role: Role;
 }
 

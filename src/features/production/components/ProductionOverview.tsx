@@ -2,12 +2,11 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Btn, SectionHeader, TabBar } from "../../../components/common";
 import { BomTab } from "./BomTab";
-import { IncidentsTab } from "./IncidentsTab";
 import { NewProdOrderModal } from "./NewProdOrderModal";
 import { OperateursTab } from "./OperateursTab";
 import { OrdersTab } from "./OrdersTab";
 
-const TABS = ["Ordres de fabrication", "Formules (BOM)", "Opérateurs", "Incidents"];
+const TABS = ["Ordres de fabrication", "Formules (BOM)", "Opérateurs"];
 
 export function ProductionOverview() {
   const [tab, setTab] = useState(TABS[0]);
@@ -25,7 +24,6 @@ export function ProductionOverview() {
       {tab === "Ordres de fabrication" && <OrdersTab />}
       {tab === "Formules (BOM)" && <BomTab />}
       {tab === "Opérateurs" && <OperateursTab />}
-      {tab === "Incidents" && <IncidentsTab />}
 
       {showOF && <NewProdOrderModal onClose={() => setShowOF(false)} />}
     </div>

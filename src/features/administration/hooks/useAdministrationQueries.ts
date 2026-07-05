@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  createCommercial, createOperateur, createUser, getCommerciaux, getOperateurs, getPermissions, getSettings, getUsers, updatePermission, updateSettings,
+  createCommercial, createOperateur, createUser, getCommerciaux, getOperateurs, getPermissionModules, getPermissions,
+  getSettings, getUsers, importCommerciaux, importOperateurs, importUsers, updatePermission, updateSettings,
 } from "../api/administrationApi";
+import type { ImportRow } from "../../../components/common";
 import type {
   NewAdminUserAccount, NewCommercial, NewOperateur, Settings,
 } from "../../../types/administration.types";
@@ -11,10 +13,14 @@ export const usersKeys = { all: ["users"] as const };
 export const operateursKeys = { all: ["operateurs"] as const };
 export const commerciauxKeys = { all: ["commerciaux"] as const };
 export const settingsKeys = { all: ["settings"] as const };
-export const permissionsKeys = { all: ["permissions"] as const };
+export const permissionsKeys = { all: ["permissions"] as const, modules: ["permissions", "modules"] as const };
 
 export function usePermissions() {
   return useQuery({ queryKey: permissionsKeys.all, queryFn: getPermissions });
+}
+
+export function usePermissionModules() {
+  return useQuery({ queryKey: permissionsKeys.modules, queryFn: getPermissionModules });
 }
 
 export function useUpdatePermission() {
@@ -70,6 +76,42 @@ export function useCreateCommercial() {
   return useMutation({
     mutationFn: (payload: NewCommercial) => createCommercial(payload),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: commerciauxKeys.all }); toast.success("Commercial créé"); },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useImportUsers() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (rows: ImportRow[]) => importUsers(rows),
+    onSuccess: (report) => {
+      queryClient.invalidateQueries({ queryKey: usersKeys.all });
+      if (report.errors.length === 0) toast.success(`${report.created} compte(s) importé(s)`);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useImportOperateurs() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (rows: ImportRow[]) => importOperateurs(rows),
+    onSuccess: (report) => {
+      queryClient.invalidateQueries({ queryKey: operateursKeys.all });
+      if (report.errors.length === 0) toast.success(`${report.created} opérateur(s) importé(s)`);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useImportCommerciaux() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (rows: ImportRow[]) => importCommerciaux(rows),
+    onSuccess: (report) => {
+      queryClient.invalidateQueries({ queryKey: commerciauxKeys.all });
+      if (report.errors.length === 0) toast.success(`${report.created} commercial(aux) importé(s)`);
+    },
     onError: (err: Error) => toast.error(err.message),
   });
 }

@@ -1,5 +1,5 @@
-import { get, post } from "../../../services/httpClient";
-import type { BomEntry, Incident, NewProdOrder, Operateur, ProdOrder } from "../../../types/production.types";
+import { del, get, post, put } from "../../../services/httpClient";
+import type { BomEntry, Incident, NewBom, NewProdOrder, Operateur, ProdOrder, UpdateBom } from "../../../types/production.types";
 import type { StockItem } from "../../../types/stock.types";
 
 export function getProdOrders(params?: { search?: string }): Promise<ProdOrder[]> {
@@ -12,6 +12,22 @@ export function createProdOrder(payload: NewProdOrder): Promise<ProdOrder> {
 
 export function getBom(): Promise<BomEntry[]> {
   return get<BomEntry[]>("/boms");
+}
+
+export function createBom(payload: NewBom): Promise<BomEntry> {
+  return post<BomEntry>("/boms", payload);
+}
+
+export function updateBom(id: string, payload: UpdateBom): Promise<BomEntry> {
+  return put<BomEntry>(`/boms/${id}`, payload);
+}
+
+export function deleteBom(id: string): Promise<void> {
+  return del(`/boms/${id}`);
+}
+
+export function getStockMatieres(): Promise<StockItem[]> {
+  return get<StockItem[]>("/stock-items", { type: "MATIERE" });
 }
 
 export function getOperateurs(params?: { search?: string }): Promise<Operateur[]> {

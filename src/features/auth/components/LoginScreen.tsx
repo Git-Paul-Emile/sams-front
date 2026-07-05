@@ -3,11 +3,13 @@ import { useNavigate } from "react-router";
 import { FlaskConical } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLogin } from "../hooks/useLogin";
+import { PhoneAuthPanel } from "./PhoneAuthPanel";
 
 export function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [channel, setChannel] = useState<"email" | "phone">("email");
   const { login } = useAuth();
   const loginMutation = useLogin();
   const navigate = useNavigate();
@@ -35,32 +37,44 @@ export function LoginScreen() {
           <p className="text-blue-300 text-sm mt-1">Savonnerie Moderne du Sénégal</p>
         </div>
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
-          <h2 className="text-white font-semibold mb-6" style={{ fontFamily: "var(--font-family-heading)" }}>Connexion</h2>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-blue-300 text-xs font-semibold uppercase tracking-wide">Identifiant</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="utilisateur@sams.sn"
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-blue-300 text-xs font-semibold uppercase tracking-wide">Mot de passe</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            {error && <p className="text-red-300 text-xs font-medium bg-red-500/10 border border-red-400/30 rounded-lg px-3 py-2">{error}</p>}
-            <button onClick={handleLogin} disabled={!email || !password || loginMutation.isPending} className="w-full py-3 bg-blue-500 hover:bg-blue-400 text-white font-semibold rounded-lg transition-colors mt-2 disabled:opacity-50" style={{ fontFamily: "var(--font-family-heading)" }}>Se connecter</button>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-white font-semibold" style={{ fontFamily: "var(--font-family-heading)" }}>Connexion</h2>
+            <button
+              onClick={() => setChannel(channel === "email" ? "phone" : "email")}
+              className="text-blue-300 text-xs underline"
+            >
+              {channel === "email" ? "Se connecter par téléphone" : "Se connecter par email"}
+            </button>
           </div>
+          {channel === "email" ? (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-blue-300 text-xs font-semibold uppercase tracking-wide">Identifiant</label>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="utilisateur@sams.sn"
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-blue-300 text-xs font-semibold uppercase tracking-wide">Mot de passe</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              </div>
+              {error && <p className="text-red-300 text-xs font-medium bg-red-500/10 border border-red-400/30 rounded-lg px-3 py-2">{error}</p>}
+              <button onClick={handleLogin} disabled={!email || !password || loginMutation.isPending} className="w-full py-3 bg-blue-500 hover:bg-blue-400 text-white font-semibold rounded-lg transition-colors mt-2 disabled:opacity-50" style={{ fontFamily: "var(--font-family-heading)" }}>Se connecter</button>
+            </div>
+          ) : (
+            <PhoneAuthPanel onDone={() => navigate("/dashboard", { replace: true })} />
+          )}
         </div>
         <p className="text-center text-blue-400/60 text-xs mt-6">SAMS ERP v3.0 — Tous droits réservés © 2024</p>
       </div>

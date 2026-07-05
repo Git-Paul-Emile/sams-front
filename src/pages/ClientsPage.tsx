@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, Upload } from "lucide-react";
 import { SectionHeader, Btn } from "../components/common";
-import { ClientList, ClientDetail, AddClientModal, EditClientModal, useClients } from "../features/clients";
+import { ClientList, ClientDetail, AddClientModal, EditClientModal, ImportClientsModal, useClients } from "../features/clients";
 import { exportToExcel, exportToPdf } from "../utils/exportFile";
 import { fmt } from "../utils/format";
 import type { Client } from "../types/clients.types";
@@ -20,6 +20,7 @@ export function ClientsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const sel: Client | null = clients.find((c) => c.id === selectedId) ?? null;
 
@@ -32,6 +33,7 @@ export function ClientsPage() {
           <div className="flex gap-2">
             <Btn variant="secondary" sm onClick={() => exportToExcel("Clients", CLIENTS_HEADERS, clientsRows(clients))}><Download className="w-3.5 h-3.5" />Excel</Btn>
             <Btn variant="secondary" sm onClick={() => exportToPdf("Clients", CLIENTS_HEADERS, clientsRows(clients))}><Download className="w-3.5 h-3.5" />PDF</Btn>
+            <Btn variant="secondary" sm onClick={() => setShowImport(true)}><Upload className="w-3.5 h-3.5" />Importer</Btn>
             <Btn onClick={() => setShowAdd(true)}><Plus className="w-4 h-4" />Nouveau client</Btn>
           </div>
         }
@@ -45,6 +47,7 @@ export function ClientsPage() {
 
       {showAdd && <AddClientModal onClose={() => setShowAdd(false)} />}
       {showEdit && sel && <EditClientModal client={sel} onClose={() => setShowEdit(false)} />}
+      {showImport && <ImportClientsModal onClose={() => setShowImport(false)} />}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { get, patch, post } from "../../../services/httpClient";
+import type { ImportReport, ImportRow } from "../../../components/common";
 import type { Mouvement, StockItem } from "../../../types/stock.types";
 
 export function getStockMatieres(params?: { search?: string }): Promise<StockItem[]> {
@@ -28,4 +29,8 @@ export function createMouvement(payload: NewMouvement): Promise<Mouvement> {
 // (les deux collections sont désormais une seule table StockItem côté backend).
 export function updateStockItemQuantity(id: string, stock: number): Promise<StockItem> {
   return patch<StockItem>(`/stock-items/${id}/stock`, { stock });
+}
+
+export function importStockItems(rows: ImportRow[]): Promise<ImportReport> {
+  return post<ImportReport>("/stock-items/import", { rows });
 }

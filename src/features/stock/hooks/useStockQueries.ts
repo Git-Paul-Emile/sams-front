@@ -5,8 +5,10 @@ import {
   getMouvements,
   getStockMatieres,
   getStockProduits,
+  importStockItems,
   updateStockItemQuantity,
 } from "../api/stockApi";
+import type { ImportRow } from "../../../components/common";
 import type { StockItem } from "../../../types/stock.types";
 
 export const stockKeys = {
@@ -33,6 +35,19 @@ export function useMouvements(search?: string) {
   return useQuery({
     queryKey: [...stockKeys.mouvements, { search: search ?? "" }] as const,
     queryFn: () => getMouvements({ search }),
+  });
+}
+
+export function useImportStockItems() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (rows: ImportRow[]) => importStockItems(rows),
+    onSuccess: (report) => {
+      queryClient.invalidateQueries({ queryKey: stockKeys.matieres });
+      queryClient.invalidateQueries({ queryKey: stockKeys.produits });
+      if (report.errors.length === 0) toast.success(`${report.created} article(s) importé(s)`);
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 }
 

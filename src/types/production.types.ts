@@ -23,6 +23,8 @@ export interface NewProdOrder {
 }
 
 export interface BomItem {
+  id: Id;
+  matiereId: Id;
   intrant: string;
   categorie: string;
   qte: number;
@@ -31,8 +33,24 @@ export interface BomItem {
 
 export interface BomEntry {
   id: Id;
+  produitId: Id;
   produit: string;
   items: BomItem[];
+}
+
+export interface NewBomLine {
+  matiereId: string;
+  qte: number;
+  unite: string;
+}
+
+export interface NewBom {
+  produitId: string;
+  items: NewBomLine[];
+}
+
+export interface UpdateBom {
+  items: NewBomLine[];
 }
 
 export interface Operateur {

@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createProdOrder, getBom, getIncidents, getOperateurs, getProdOrders, getStockProduits } from "../api/productionApi";
-import type { NewProdOrder } from "../../../types/production.types";
+import {
+  createBom, createProdOrder, deleteBom, getBom, getIncidents, getOperateurs, getProdOrders, getStockMatieres,
+  getStockProduits, updateBom,
+} from "../api/productionApi";
+import type { NewBom, NewProdOrder, UpdateBom } from "../../../types/production.types";
 
 export const productionKeys = {
   orders: ["prodOrders"] as const,
@@ -42,6 +45,49 @@ export function useProductionStockProduits() {
   return useQuery({
     queryKey: ["stockProduits"],
     queryFn: getStockProduits,
+  });
+}
+
+export function useStockMatieres() {
+  return useQuery({
+    queryKey: ["stockMatieres"],
+    queryFn: getStockMatieres,
+  });
+}
+
+export function useCreateBom() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: NewBom) => createBom(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productionKeys.bom });
+      toast.success("Formule créée");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useUpdateBom() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateBom }) => updateBom(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productionKeys.bom });
+      toast.success("Formule mise à jour");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+}
+
+export function useDeleteBom() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteBom(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productionKeys.bom });
+      toast.success("Formule supprimée");
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 }
 
